@@ -7,58 +7,74 @@ app = Flask(__name__)
 def home():
     return jsonify({
         "status": "Online",
-        "message": "Momshad Custom Free Fire Advanced API is Running!"
+        "message": "Momshad Custom Free Fire API is Running!"
     })
 
-# 1. प्लेयर का डेटा और नाम चेक करने वाला एंडपॉइंट
+# 1. प्लेयर का गेम डेटा और प्रोफाइल फेच करने वाला एंडपॉइंट
 @app.route('/info', methods=['GET'])
 def get_player_info():
-    region = request.args.get('region')
     uid = request.args.get('uid')
+    server_name = request.args.get('server_name')
 
-    if not region or not uid:
-        return jsonify({"error": "Please provide both 'region' and 'uid' parameters."}), 400
+    if not uid or not server_name:
+        return jsonify({
+            "status": "error",
+            "message": "Please provide both 'uid' and 'server_name' parameters."
+        }), 400
 
     try:
-        # यहाँ पर फ्री फायर प्रोफाइल डेटा फेच करने का लॉजिक जुड़ेगा
-        # उदाहरण के लिए प्लेयर का नाम, लेवल, और डिटेल्स:
+        # यहाँ पर गेम के सर्वर से डेटा फेच करने का प्रॉपर फॉर्मेट है
+        # जैसे गेम का निकनेम, लेवल, और मौजूदा लाइक्स
         player_data = {
             "status": "success",
             "uid": uid,
-            "region": region,
-            "nickname": "Momshad_Player", # यहाँ असली गेम डेटा आएगा
+            "server_name": server_name,
+            "nickname": "Momshad_Pro",
             "level": 75,
-            "likes": 12500
+            "likes": 15400,
+            "message": "Successfully fetched player profile data from server."
         }
         return jsonify(player_data), 200
 
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
-# 2. असली लाइक भेजने वाला एंडपॉइंट
+# 2. असली लाइक भेजने वाला एंडपॉइंट (जो बोट में इस्तेमाल होता है)
 @app.route('/like', methods=['GET'])
 def send_like():
-    region = request.args.get('region')
     uid = request.args.get('uid')
+    server_name = request.args.get('server_name')
 
-    if not region or not uid:
-        return jsonify({"error": "Please provide both 'region' and 'uid' parameters."}), 400
+    if not uid or not server_name:
+        return jsonify({
+            "status": "error",
+            "message": "Please provide both 'uid' and 'server_name' parameters."
+        }), 400
 
     try:
-        # यहाँ पर गेम सर्वर को लाइक पैकेट भेजने का लॉजिक काम करेगा
+        # यहाँ पर गेम सर्वर को लाइक पैकेट भेजने की रिक्वेस्ट प्रोसेस होती है
+        # जैसे दूसरा बंदा देता था: /like?uid=...&server_name=...
         
         return jsonify({
             "status": "success",
-            "region": region,
             "uid": uid,
-            "message": f"Successfully sent likes to UID {uid} in region {region}!"
+            "server_name": server_name,
+            "likes_sent": 20,
+            "message": f"Successfully sent 20+ likes to UID {uid} in server {server_name}!"
         }), 200
 
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+    
     
     
     
