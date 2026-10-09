@@ -31,23 +31,25 @@ def send_likes():
         info_url = f'https://freefire-api.vercel.app/api/info?uid={target_uid}&region={region}'
         headers = {'User-Agent': 'Mozilla/5.0'}
         r = requests.get(info_url, headers=headers, timeout=5)
+        print("API Raw Response:", r.text)  # Render लॉग्ज़ में असली रिस्पॉन्स देखने के लिए
         
         if r.status_code == 200:
             data = r.json()
-            if 'accountInfo' in data:
-                acc = data['accountInfo']
-                nickname = acc.get('accountName', 'Player Name')
-                current_likes = str(acc.get('likes', '0'))
-            elif 'nickname' in data:
-                nickname = data.get('nickname', 'Player Name')
-                current_likes = str(data.get('likes', '0'))
-            elif 'data' in data:
-                acc = data['data']
-                nickname = acc.get('nickname', acc.get('accountName', 'Player Name'))
-                current_likes = str(acc.get('likes', '0'))
-            elif 'name' in data:
-                nickname = data.get('name', 'Player Name')
-                current_likes = str(data.get('likes', '0'))
+            if isinstance(data, dict):
+                if 'accountInfo' in data:
+                    acc = data['accountInfo']
+                    nickname = acc.get('accountName', 'Player Name')
+                    current_likes = str(acc.get('likes', '0'))
+                elif 'nickname' in data:
+                    nickname = data.get('nickname', 'Player Name')
+                    current_likes = str(data.get('likes', '0'))
+                elif 'data' in data:
+                    acc = data['data']
+                    nickname = acc.get('nickname', acc.get('accountName', acc.get('name', 'Player Name')))
+                    current_likes = str(acc.get('likes', '0'))
+                elif 'name' in data:
+                    nickname = data.get('name', 'Player Name')
+                    current_likes = str(data.get('likes', '0'))
     except Exception as e:
         print(f"Error fetching player info: {e}")
 
@@ -99,6 +101,7 @@ def send_likes():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+    
     
     
     
