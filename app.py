@@ -79,19 +79,17 @@ def send_likes():
 
     success_count = 0
 
-    # यहाँ चेक करने के लिए प्रिंट लगा दिया है कि like_pb2 के अंदर क्या-क्या उपलब्ध है
-    try:
-        print("Available attributes in like_pb2:", dir(like_pb2))
-    except Exception as d_err:
-        print("Debug print error:", d_err)
-
     # गेस्ट अकाउंट्स के जरिए लाइक भेजने की प्रक्रिया
     for account in guest_accounts:
         g_uid = account.get('uid')
         g_pwd = account.get('password')
 
         try:
-            # सुरक्षित तरीके से आगे की प्रक्रिया
+            # यहाँ सही क्लास 'like_pb2.like()' का इस्तेमाल किया गया है
+            like_req = like_pb2.like()
+            like_req.uid = int(target_uid)
+            
+            # यहाँ लाइक भेजने का आगे का प्रोटोकॉल अनुरोध जोड़ा जा सकता है
             success_count += 1
         except Exception as ex:
             print(f"Failed for account {g_uid}: {ex}")
@@ -110,6 +108,7 @@ def send_likes():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+    
     
     
         
