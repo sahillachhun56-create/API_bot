@@ -26,9 +26,9 @@ def send_likes():
     nickname = 'Player Name'
     current_likes = '0'
 
-    # फ्री फायर सर्वर से असली डेटा और नाम फेच करना
+    # वर्किंग पब्लिक एपीआई के जरिए नाम और लाइक्स फेच करना
     try:
-        info_url = f'https://api.freefireinfo.in/info?uid={target_uid}&region={region}'
+        info_url = f'https://freefire-api.vercel.app/api/info?uid={target_uid}&region={region}'
         headers = {'User-Agent': 'Mozilla/5.0'}
         r = requests.get(info_url, headers=headers, timeout=5)
         
@@ -45,6 +45,9 @@ def send_likes():
                 acc = data['data']
                 nickname = acc.get('nickname', acc.get('accountName', 'Player Name'))
                 current_likes = str(acc.get('likes', '0'))
+            elif 'name' in data:
+                nickname = data.get('name', 'Player Name')
+                current_likes = str(data.get('likes', '0'))
     except Exception as e:
         print(f"Error fetching player info: {e}")
 
@@ -96,6 +99,7 @@ def send_likes():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+    
     
     
       
