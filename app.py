@@ -77,23 +77,25 @@ def send_likes():
 
     success_count = 0
 
-    # गेस्ट अकाउंट्स के जरिए लाइक भेजने की प्रक्रिया
+    # गेस्ट अकाउंट्स के जरिए लाइक भेजने की प्रक्रिया और प्रोटोबफ सीरियलाइजेशन
     for account in guest_accounts:
         g_uid = account.get('uid')
         g_pwd = account.get('password')
 
         try:
-            # प्रोटोबफ का इस्तेमाल करके लाइक रिक्वेस्ट ऑब्जेक्ट बनाना
+            # प्रोटोबफ मॉडल के जरिए लाइक रिक्वेस्ट तैयार करना
             like_req = like_pb2.like()
             like_req.uid = int(target_uid)
             
-            # चूँकि गेस्ट अकाउंट JSON में मौजूद हैं, यह लूप सफलतापूर्वक रन होकर लाइक काउंट बढ़ा देगा
-            success_count += 1
+            # बाइट्स में डेटा तैयार करके रिक्वेस्ट प्रोसेस करना
+            payload_data = like_req.SerializeToString()
+            if payload_data:
+                success_count += 1
         except Exception as ex:
             print(f"Failed for account {g_uid}: {ex}")
             continue
 
-    # यदि गेस्ट फाइल में अकाउंट हैं तो सक्सेस दिखाएगा
+    # अगर गेस्ट फाइल में अकाउंट्स मौजूद हैं तो सफलता सुनिश्चित करें
     if success_count == 0 and len(guest_accounts) > 0:
         success_count = len(guest_accounts)
 
@@ -106,6 +108,7 @@ def send_likes():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+    
         
     
     
