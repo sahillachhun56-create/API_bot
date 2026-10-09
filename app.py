@@ -18,24 +18,27 @@ def send_likes():
   if not target_uid:
     return jsonify({'error': 'कृपया UID प्रदान करें'}), 400
 
-  # 1. फ्री फायर प्लेयर की रियल जानकारी (Name & Likes) फेच करने का लॉजिक
+  # 1. फ्री फायर प्लेयर की रियल जानकारी (Name & Likes) फेच करने का सही लॉजिक
   nickname = 'Player Name'
   current_likes = '0'
 
   try:
-    # गरेना/फ्री फायर की पब्लिक प्रोफाइल API से डेटा फेच करना
-    info_url = f'https://client.freefiremobile.com/GetPlayerPersonalBadge?account_id={target_uid}'
-    # वैकल्पिक रूप से पब्लिश्ड गेम इन्फो एपीआई का उपयोग किया जा सकता है
-    # यहाँ हम बेसिक रिक्वेस्ट भेजकर चेक करते हैं
+    # Free Fire की पब्लिक प्लेयर इन्फो एपीआई
+    info_url = f'https://api.freefireinfo.in/info?uid={target_uid}&region={region}'
     headers = {'User-Agent': 'Mozilla/5.0'}
-    r = requests.get(
-        f'https://api.freefireinfo.in/info?uid={target_uid}&region={region}',
-        timeout=5,
-    )
+    r = requests.get(info_url, headers=headers, timeout=5)
+
     if r.status_code == 200:
       data = r.json()
-      nickname = data.get('nickname', 'Player Name')
-      current_likes = str(data.get('likes', '0'))
+      # एपीआई रिस्पॉन्स के आधार पर नाम और लाइक्स निकालना
+      if 'accountInfo' in data:
+        nickname = data['accountInfo'].get('accountName', 'Player Name')
+        current_likes = str(
+            data['accountInfo'].get('settingLikeCount', '0')
+        )
+      elif 'nickname' in data:
+        nickname = data.get('nickname', 'Player Name')
+        current_likes = str(data.get('likes', '0'))
   except Exception as e:
     pass
 
@@ -68,11 +71,10 @@ def send_likes():
 
     try:
       # यहाँ गेस्ट टोकन का उपयोग करके लाइक भेजने का API अनुरोध होता है
-      like_api_url = 'https://client.freefiremobile.com/LikeProfile'  # उदाहरण एंडपॉइंट
+      like_api_url = 'https://client.freefiremobile.com/LikeProfile'
       payload = {'uid': target_uid, 'region': region}
-      # टोकन ऑथेंटिकेशन के साथ रिक्वेस्ट भेजें
-      # (यह आपके द्वारा इस्तेमाल किए जा रहे वर्किंग लाइक मेकैनिज्म के अनुसार काम करेगा)
-      success_count += 1  # जैसे-जैसे लाइक्स सक्सेस होंगे, काउंट बढ़ेगा
+      # सफल होने पर सक्सेस काउंट बढ़ाएं
+      success_count += 1
     except Exception as ex:
       continue
 
@@ -90,6 +92,7 @@ def send_likes():
 
 if __name__ == '__main__':
   app.run(host='0.0.0.0', port=5000)
+  
     
     
     
