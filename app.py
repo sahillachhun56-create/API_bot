@@ -11,13 +11,15 @@ def home():
 @app.route('/like', methods=['GET'])
 def send_likes():
     target_uid = request.args.get('uid')
+    region = request.args.get('region', 'IND').upper()  # डिफ़ॉल्ट रीजन IND रहेगा
     
     if not target_uid:
-        return jsonify({"error": "कृपया टारगेट UID दें! उदाहरण: /like?uid=YOUR_UID"}), 400
+        return jsonify({"error": "कृपया टारगेट UID दें! उदाहरण: /like?region=ind&uid=YOUR_UID"}), 400
 
     # 1. टारगेट प्लेयर की जानकारी फेच करने का सेटअप
     player_info = {
         "target_uid": target_uid,
+        "region": region,
         "nickname": "Player Name",
         "likes": "Checking..."
     }
@@ -50,7 +52,7 @@ def send_likes():
             
             payload = {
                 "uid": int(target_uid),
-                "region": "IND"
+                "region": region
             }
             
             # असली रिक्वेस्ट भेजने का लॉजिक (जरूरत पड़ने पर अनकमेंट करें)
@@ -79,6 +81,7 @@ def send_likes():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+    
     
             
     
