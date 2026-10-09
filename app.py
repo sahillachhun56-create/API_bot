@@ -26,15 +26,30 @@ def send_likes():
     nickname = 'Player Name'
     current_likes = '0'
 
-    # वर्किंग पब्लिक एपीआई के जरिए नाम और लाइक्स फेच करना
+    # वर्किंग पब्लिक एपीआई के जरिए नाम और लाइक्स फेच करना (मल्टीपल एंडपॉइंट्स के साथ)
     try:
-        info_url = f'https://freefire-api.vercel.app/api/info?uid={target_uid}&region={region}'
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        r = requests.get(info_url, headers=headers, timeout=5)
-        print("API Raw Response:", r.text)  # Render लॉग्ज़ में असली रिस्पॉन्स देखने के लिए
+        api_endpoints = [
+            f'https://freefire-api.vercel.app/info?uid={target_uid}&region={region}',
+            f'https://freefire-api.vercel.app/api/player?uid={target_uid}&region={region}',
+            f'https://api.freefireinfo.in/info?uid={target_uid}&region={region}'
+        ]
         
-        if r.status_code == 200:
+        r = None
+        for info_url in api_endpoints:
+            try:
+                headers = {'User-Agent': 'Mozilla/5.0'}
+                resp = requests.get(info_url, headers=headers, timeout=3)
+                print(f"Trying URL {info_url} -> Status: {resp.status_code}")
+                # अगर रिस्पॉन्स सफल है और HTML पेज (404) नहीं है
+                if resp.status_code == 200 and not resp.text.strip().startswith('<'):
+                    r = resp
+                    break
+            except Exception:
+                continue
+
+        if r and r.status_code == 200:
             data = r.json()
+            print("API Raw Response:", data)
             if isinstance(data, dict):
                 if 'accountInfo' in data:
                     acc = data['accountInfo']
@@ -101,6 +116,7 @@ def send_likes():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+                    
     
     
     
