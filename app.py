@@ -12,40 +12,41 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return 'Free Fire Like & Info API Bot is Live!'
+    return 'Free Fire Like & Info API is Running Successfully!'
 
 @app.route('/like', methods=['GET'])
 def send_likes():
     target_uid = request.args.get('uid')
-    region = request.args.get('region')
+    region = request.args.get('region', 'IND')
 
     if not target_uid:
-        return jsonify({'error': 'कृपया UID दें'})
+        return jsonify({'error': 'कृपया UID प्रदान करें'}), 400
 
-    # डिफ़ॉल्ट वैल्यूज़
+    # डिफ़ॉल्ट वैल्यूज़
     nickname = 'Player Name'
     current_likes = '0'
 
+    # फ्री फायर सर्वर से असली डेटा और नाम फेच करना
     try:
-        # फ्री फायर सर्वर से असली डेटा और नाम निकालना
-        req = visit_count_pb2.VisitCountReq()
-        req.uid = int(target_uid)
-
-        # पब्लिक एपीआई के जरिए नाम और लाइक्स लाना
-        info_url = f'https://api.freefireinfo.in/info?uid={target_uid}'
+        info_url = f'https://api.freefireinfo.in/info?uid={target_uid}&region={region}'
         headers = {'User-Agent': 'Mozilla/5.0'}
-        r = requests.get(info_url, headers=headers)
-
+        r = requests.get(info_url, headers=headers, timeout=5)
+        
         if r.status_code == 200:
             data = r.json()
             if 'accountInfo' in data:
-                nickname = data['accountInfo'].get('accountName', 'Player Name')
-                current_likes = str(data['accountInfo'].get('accountLikes', '0'))
+                acc = data['accountInfo']
+                nickname = acc.get('accountName', 'Player Name')
+                current_likes = str(acc.get('likes', '0'))
             elif 'nickname' in data:
                 nickname = data.get('nickname', 'Player Name')
                 current_likes = str(data.get('likes', '0'))
+            elif 'data' in data:
+                acc = data['data']
+                nickname = acc.get('nickname', acc.get('accountName', 'Player Name'))
+                current_likes = str(acc.get('likes', '0'))
     except Exception as e:
-        pass
+        print(f"Error fetching player info: {e}")
 
     player_info = {
         'target_uid': target_uid,
@@ -89,12 +90,13 @@ def send_likes():
         'reason': (
             'Likes sent successfully'
             if success_count > 0
-            else 'Daily Max Limit Reached'
+            else 'Daily Max Limit Reached or Failed'
         ),
     })
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+    
     
       
   
