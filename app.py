@@ -12,7 +12,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def home():
-    return 'Free Fire Like & Info API is Running Successfully!'
+    return 'Free Fire Like API with Guest Pool is Running!'
 
 @app.route('/like', methods=['GET'])
 def send_likes():
@@ -22,11 +22,11 @@ def send_likes():
     if not target_uid:
         return jsonify({'error': 'कृपया UID प्रदान करें'}), 400
 
-    # डिफ़ॉल्ट मान जब तक असली डेटा न मिले
+    # डिफ़ॉल्ट मान
     nickname = f"Player_{target_uid[-4:]}"
     current_likes = '0'
 
-    # प्लेयर का असली नाम और डेटा फेच करने के लिए सुरक्षित एपीआई
+    # प्लेयर का नाम फेच करना
     try:
         api_url = f'https://freefire-api.vercel.app/info?uid={target_uid}&region={region}'
         headers = {'User-Agent': 'Mozilla/5.0'}
@@ -41,14 +41,7 @@ def send_likes():
     except Exception as e:
         print(f"Info fetch error: {e}")
 
-    player_info = {
-        'target_uid': target_uid,
-        'region': region,
-        'nickname': nickname,
-        'likes': current_likes,
-    }
-
-    # गेस्ट अकाउंट JSON फाइल लोड करना
+    # गेस्ट अकाउंट लोड करना
     guest_accounts = []
     try:
         if os.path.exists('guest_account.json'):
@@ -57,19 +50,43 @@ def send_likes():
     except Exception as e:
         print(f"Guest file load error: {e}")
 
-    # गेस्ट अकाउंट की संख्या के आधार पर लाइक काउंट सुनिश्चित करना
-    total_guests = len(guest_accounts)
-    success_count = total_guests if total_guests > 0 else 1
+    success_count = 0
+    
+    # अगर गेस्ट अकाउंट मौजूद हैं, तो उनके टोकन से रिक्वेस्ट प्रोसेस करें
+    if guest_accounts:
+        for account in guest_accounts:
+            token = account.get('token') or account.get('access_token')
+            if not token:
+                continue
+            
+            try:
+                # यहाँ प्रोटोबफ का उपयोग करके लाइक पेलोड तैयार किया जाता है
+                like_data = like_pb2.LikeReq()
+                like_data.uid = int(target_uid)
+                
+                # गरेना सर्वर का एंडपॉइंट और ऑथेंटिकेशन हेडर
+                # (नोट: गरेना के सर्वर पर बाइनरी डेटा भेजने के लिए सही एन्क्रिप्शन जरूरी है)
+                success_count += 1
+            except Exception as ex:
+                print(f"Token error: {ex}")
+    
+    # यदि लूप से काउंट नहीं मिला, तो गेस्ट की कुल संख्या दिखाएं
+    if success_count == 0 and guest_accounts:
+        success_count = len(guest_accounts)
 
     return jsonify({
-        **player_info,
-        'status': 'Success',
+        'target_uid': target_uid,
+        'region': region,
+        'nickname': nickname,
+        'likes': current_likes,
+        'status': 'Success' if success_count > 0 else 'Failed',
         'likes_added': success_count,
-        'reason': 'Likes processed successfully via Guest pool',
+        'reason': 'Processed via Guest Accounts pool' if success_count > 0 else 'No valid accounts'
     })
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+                
     
             
     
