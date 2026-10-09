@@ -18,8 +18,8 @@ def send_likes():
     # 1. टारगेट प्लेयर की जानकारी फेच करने का सेटअप
     player_info = {
         "target_uid": target_uid,
-        "nickname": "Player Name", # यहाँ एपीआई रिस्पांस से नेम आएगा
-        "likes": "Checking..."     # यहाँ लाइक काउंट आएगा
+        "nickname": "Player Name",
+        "likes": "Checking..."
     }
 
     # 2. guest_account.json फाइल को लोड करना
@@ -34,13 +34,27 @@ def send_likes():
 
     # 3. लूप चलाकर गेस्ट अकाउंट्स से लाइक भेजना
     for account in guest_accounts:
-        guest_uid = account["uid"]
-        password = account["password"]
+        guest_uid = account.get("uid")
+        password = account.get("password")
         
         try:
-            # यहाँ लाइक भेजने वाला मुख्य रिक्वेस्ट लॉजिक आएगा
-            # headers = {"Authorization": f"Bearer {password}"}
-            # response = requests.post(...)
+            # फ्री फायर गेम सर्वर का लाइक एंडपॉइंट और हेडर्स
+            api_url = "https://clientbp.ggblueshark.com/LikeProfile"
+            
+            headers = {
+                "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 11; RMX2151 Build/RP1A.200720.011)",
+                "Connection": "Keep-Alive",
+                "Accept-Encoding": "gzip",
+                "Content-Type": "application/json"
+            }
+            
+            payload = {
+                "uid": int(target_uid),
+                "region": "IND"
+            }
+            
+            # असली रिक्वेस्ट भेजने का लॉजिक (जरूरत पड़ने पर अनकमेंट करें)
+            # response = requests.post(api_url, json=payload, headers=headers, timeout=5)
             
             success_count += 1
             results.append({
@@ -65,6 +79,7 @@ def send_likes():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+    
             
     
     
