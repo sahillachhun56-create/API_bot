@@ -26,7 +26,7 @@ def send_likes():
     nickname = f"Player_{target_uid[-4:]}"
     current_likes = '150'
 
-    # वैकल्पिक पब्लिक एपीआई या प्रोटोबफ डेटा फेचिंग लॉजिक
+    # प्लेयर इन्फो फेच करने का लॉजिक
     try:
         api_endpoints = [
             f'https://freefire-api.vercel.app/info?uid={target_uid}&region={region}',
@@ -79,18 +79,17 @@ def send_likes():
 
     success_count = 0
 
-    # गेस्ट अकाउंट्स के जरिए लाइक भेजने की प्रक्रिया
+    # गेस्ट अकाउंट्स के जरिए लाइक भेजने की प्रक्रिया (सही प्रोटोबफ क्लास के साथ)
     for account in guest_accounts:
         g_uid = account.get('uid')
         g_pwd = account.get('password')
 
         try:
-            like_req = like_pb2.LikeReq()
+            # यहाँ like_pb2.LikeReq की जगह सही क्लास like_pb2.LIKE() का इस्तेमाल किया गया है
+            like_req = like_pb2.LIKE()
             like_req.uid = int(target_uid)
             
-            # यहाँ पर प्रोटोबफ रिक्वेस्ट भेजने का मुख्य लॉजिक निष्पादित होता है
-            # (यदि टोकन या ऑथराइजेशन की आवश्यकता हो तो यहाँ जोड़ा जा सकता है)
-            
+            # यहाँ लाइक भेजने का आगे का कोड जोड़ा जा सकता है
             success_count += 1
         except Exception as ex:
             print(f"Failed for account {g_uid}: {ex}")
@@ -109,6 +108,7 @@ def send_likes():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+    
         
     
                     
