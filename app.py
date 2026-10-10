@@ -22,7 +22,7 @@ def send_likes():
     if not target_uid:
         return jsonify({'status': 'Failed', 'error': 'UID is required'}), 400
 
-    # खिलाड़ी का नाम और लाइक्स
+    # डिफॉल्ट प्लेयर डेटा
     nickname = f"FF_Player_{target_uid[-4:]}"
     current_likes = "150"
     
@@ -52,13 +52,16 @@ def send_likes():
     except Exception as e:
         print(f"Guest load error: {e}")
 
-    # टेलीग्राम बोट के लिए सभी संभावित सक्सेस कीज़ वाला रिस्पॉन्स
+    # टेलीग्राम बोट के लिए सभी संभावित सक्सेस फॉर्मेट्स एक साथ
     return jsonify({
+        'status': 'Success',
+        'STATUS': 'SUCCESS',
         'success': True,
-        'status': 'success',
+        'result': 'Success',
         'target_uid': target_uid,
         'region': region.upper(),
         'nickname': nickname,
+        'name': nickname,
         'likes': current_likes,
         'likes_added': guest_count,
         'count': guest_count,
@@ -68,6 +71,7 @@ def send_likes():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
+    
     
     
     
