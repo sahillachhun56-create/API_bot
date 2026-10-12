@@ -221,39 +221,40 @@ def handle_requests():
                 used_count += 1
 
             remaining = max(daily_limit - used_count, 0)
-try:         
-    nickname = after.AccountInfo.PlayerNickname
-except (AttributeError, TypeError):
-    nickname = "Unknown"
+    try:
+        nickname = after.AccountInfo.PlayerNickname
+    except (AttributeError, TypeError):
+        nickname = "Unknown"
 
-try:
-    level = after.AccountInfo.Levels
-except (AttributeError, TypeError):
-    level = 0
+    try:
+        level = after.AccountInfo.Levels
+    except (AttributeError, TypeError):
+        level = 0
 
-try:
-    region = after.AccountInfo.PlayerRegion
-except (AttributeError, TypeError):
-    region = "IND"
+    try:
+        region = after.AccountInfo.PlayerRegion
+    except (AttributeError, TypeError):
+        region = "IND"
 
-try:
-    uid = after.AccountInfo.UID
-except (AttributeError, TypeError):
-    uid = "N/A"
+    try:
+        uid = after.AccountInfo.UID
+    except (AttributeError, TypeError):
+        uid = "N/A"
 
-result = OrderedDict([
-    ("LikesGivenByAPI", like_given),
-    ("LikesafterCommand", after_like),
-    ("LikesbeforeCommand", before_like),
-    ("PlayerNickname", nickname),
-    ("Level", level),
-    ("Region", region),
-    ("UID", uid),
-    ("status", status),
-    ("daily_limit", daily_limit),
-    ("used", used_count),
-    ("remaining", remaining)
-])
+    result = OrderedDict([
+        ("LikesGivenByAPI", like_given),
+        ("LikesafterCommand", after_like),
+        ("LikesbeforeCommand", before_like),
+        ("PlayerNickname", nickname),
+        ("Level", level),
+        ("Region", region),
+        ("UID", uid),
+        ("status", status),
+        ("daily_limit", daily_limit),
+        ("used", used_count),
+        ("remaining", remaining)
+    ])
+        
 
             return app.response_class(
                 response=json.dumps(result, separators=(',', ':')),
