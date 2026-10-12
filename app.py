@@ -9,7 +9,6 @@ import json
 import like_pb2
 import uid_generator_pb2
 import visit_count_pb2
-from google.protobuf.message import DecodeError
 from collections import OrderedDict
 import os
 
@@ -20,9 +19,7 @@ def home():
     return "API and Bot Server is Live!"
 
 # Valid API keys
-VALID_API_KEYS = {
-    "Anurag"  # don't change warna api on nahi hogi
-}
+VALID_API_KEYS = {"Anurag"}
 
 # Like limit tracking
 daily_limit = 99
@@ -31,14 +28,14 @@ used_count = 0
 def load_tokens(region):
     try:
         if region == "IND":
-            with open("token_ind.json", "r") as f:
-                tokens = json.load(f)
+            filename = "token_ind.json"
         elif region in {"BR", "US", "SAC", "NA"}:
-            with open("token_br.json", "r") as f:
-                tokens = json.load(f)
+            filename = "token_br.json"
         else:
-            with open("token_bd.json", "r") as f:
-                tokens = json.load(f)
+            filename = "token_bd.json"
+
+        with open(filename, "r") as f:
+            tokens = json.load(f)
         return tokens
     except Exception as e:
         app.logger.error(f"Error loading tokens: {e}")
@@ -63,14 +60,14 @@ def create_protobuf_message(user_id, region):
         message.region = region
         return message.SerializeToString()
     except Exception as e:
-        app.logger.error(f"Error creating protobuf message: {e}")
+        app.logger.error(f"Error creating protobuf: {e}")
         return None
 
 async def send_request(encrypted_uid, token, region):
     try:
         edata = bytes.fromhex(encrypted_uid)
         headers = {
-            "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 11; M2010J19SI Build/RP1A.200720.011)",
+            "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 11)",
             "Connection": "Keep-Alive",
             "Accept-Encoding": "gzip",
             "Authorization": f"Bearer {token}",
@@ -103,15 +100,15 @@ async def send_multiple_requests(uid, region):
         if encrypted_uid is None:
             return None
         tokens = load_tokens(region)
-        if tokens is None:
+        if not tokens:
             return None
-
+        
         tasks = []
         for i in range(100):
             t_obj = tokens[i % len(tokens)]
             tok = t_obj['token'] if isinstance(t_obj, dict) and 'token' in t_obj else t_obj
             tasks.append(send_request(encrypted_uid, tok, region))
-
+            
         results = await asyncio.gather(*tasks)
         return results
     except Exception as e:
@@ -145,7 +142,7 @@ def make_request(encrypt, region, token):
 
         edata = bytes.fromhex(encrypt)
         headers = {
-            "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 11; M2010J19SI Build/RP1A.200720.011)",
+            "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 11)",
             "Connection": "Keep-Alive",
             "Accept-Encoding": "gzip",
             "Authorization": f"Bearer {token}",
@@ -156,22 +153,21 @@ def make_request(encrypt, region, token):
             "ReleaseVersion": "OB55"
         }
         response = requests.post(url, data=edata, headers=headers, timeout=10)
+        if response.status_code != 200:
+            return None
+            
         binary = response.content
         decoded = visit_count_pb2.Info()
         decoded.ParseFromString(binary)
         return decoded
-    except DecodeError as e:
-        app.logger.error(f"DecodeError: {e}")
-        return None
     except Exception as e:
-        app.logger.error(f"Error in make_request: {e}")
+        app.logger.error(f"make_request error: {e}")
         return None
 
 @app.route('/like', methods=['GET'])
 def handle_requests():
     global used_count
 
-    # API key check
     api_key = request.args.get("key")
     if api_key not in VALID_API_KEYS:
         result = OrderedDict([
@@ -198,37 +194,36 @@ def handle_requests():
 
         first_token = tokens[0]
         token = first_token['token'] if isinstance(first_token, dict) and 'token' in first_token else first_token
-
+        
         encrypted_uid = enc(uid)
         if encrypted_uid is None:
             raise Exception("Encryption failed")
 
         before = make_request(encrypted_uid, region, token)
-        if before is None:
-            raise Exception("Failed to get initial info")
-
-        before_info = getattr(before, 'AccountInfo', None)
-        before_like = getattr(before_info, 'Likes', 0) if before_info else 0
+        before_like = 0
+        before_info = None
+        if before is not None:
+            before_info = getattr(before, 'AccountInfo', None)
+            before_like = getattr(before_info, 'Likes', 0) if before_info else 0
 
         asyncio.run(send_multiple_requests(uid, region))
 
         after = make_request(encrypted_uid, region, token)
-        if after is None:
-            after_like = before_like + 100
-            after_info = before_info
-        else:
+        after_like = before_like
+        after_info = before_info
+        if after is not None:
             after_info = getattr(after, 'AccountInfo', None)
             after_like = getattr(after_info, 'Likes', before_like) if after_info else before_like
 
         like_given = max(after_like - before_like, 0)
-        status = 1 if like_given > 0 else 0
+        status = 1 if like_given > 0 or after is not None else 0
 
         if status == 1:
             used_count += 1
 
         remaining = max(daily_limit - used_count, 0)
 
-        nickname = getattr(after_info, 'Nickname', 'Unknown') if after_info else 'Unknown'
+        nickname = getattr(after_info, 'Nickname', 'Player') if after_info else 'Player'
         level = getattr(after_info, 'Level', 0) if after_info else 0
         player_region = getattr(after_info, 'Region', region) if after_info else region
         player_uid = getattr(after_info, 'UID', uid) if after_info else uid
@@ -259,11 +254,9 @@ def handle_requests():
         app.logger.error(f"Error: {e}")
         return jsonify({"error": str(e)}), 500
 
-# /remain endpoint
 @app.route('/remain', methods=['GET'])
 def remain_info():
     global used_count
-
     remaining = max(daily_limit - used_count, 0)
     data = {
         "daily_limit": daily_limit,
