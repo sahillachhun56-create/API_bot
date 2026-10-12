@@ -222,7 +222,6 @@ def handle_requests():
 
             remaining = max(daily_limit - used_count, 0)
 
-    
     try:
         nickname = str(after.AccountInfo.PlayerNickname)
     except Exception:
