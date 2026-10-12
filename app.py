@@ -13,7 +13,9 @@ from google.protobuf.message import DecodeError
 from collections import OrderedDict
 
 app = Flask(__name__)
-
+@app.route('/', methods=['GET', 'HEAD'])
+def home():
+    return "API and Bot Server is Live!"
 # ✅ Valid API keys
 VALID_API_KEYS = {
     "Anurag"  # don't change warna api or bot dono nhi chalega 
