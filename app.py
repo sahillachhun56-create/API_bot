@@ -221,7 +221,7 @@ def handle_requests():
                 used_count += 1
 
             remaining = max(daily_limit - used_count, 0)
-    try:
+     try:
         nickname = after.AccountInfo.PlayerNickname
     except (AttributeError, TypeError):
         nickname = "Unknown"
