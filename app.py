@@ -222,25 +222,13 @@ def handle_requests():
 
             remaining = max(daily_limit - used_count, 0)
 
-    try:
-        nickname = str(after.AccountInfo.PlayerNickname)
-    except Exception:
-        nickname = "Unknown"
+    info = getattr(after, 'AccountInfo', None) if after else None
 
-    try:
-        level = int(after.AccountInfo.Levels)
-    except Exception:
-        level = 0
-
-    try:
-        region = str(after.AccountInfo.PlayerRegion)
-    except Exception:
-        region = "IND"
-
-    try:
-        uid = str(after.AccountInfo.UID)
-    except Exception:
-        uid = "N/A"
+    nickname = info.PlayerNickname if info and hasattr(info, 'PlayerNickname') else "Unknown"
+    level = info.Levels if info and hasattr(info, 'Levels') else 0
+    region = info.PlayerRegion if info and hasattr(info, 'PlayerRegion') else "IND"
+    uid = info.UID if info and hasattr(info, 'UID') else "N/A"
+    
         
 
     result = OrderedDict([
