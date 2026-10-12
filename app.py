@@ -223,24 +223,25 @@ def handle_requests():
             remaining = max(daily_limit - used_count, 0)
             
     try:
-        nickname = after.AccountInfo.PlayerNickname
-    except (AttributeError, TypeError):
+        nickname = str(after.AccountInfo.PlayerNickname)
+    except Exception:
         nickname = "Unknown"
 
     try:
-        level = after.AccountInfo.Levels
-    except (AttributeError, TypeError):
+        level = int(after.AccountInfo.Levels)
+    except Exception:
         level = 0
 
     try:
-        region = after.AccountInfo.PlayerRegion
-    except (AttributeError, TypeError):
+        region = str(after.AccountInfo.PlayerRegion)
+    except Exception:
         region = "IND"
 
     try:
-        uid = after.AccountInfo.UID
-    except (AttributeError, TypeError):
+        uid = str(after.AccountInfo.UID)
+    except Exception:
         uid = "N/A"
+        
 
     result = OrderedDict([
         ("LikesGivenByAPI", like_given),
