@@ -221,10 +221,12 @@ def handle_requests():
                 used_count += 1
 
             remaining = max(daily_limit - used_count, 0)
+            
             nickname = getattr(getattr(after, 'AccountInfo', None), 'PlayerNickname', 'Unknown')
             level = getattr(getattr(after, 'AccountInfo', None), 'Levels', 0)
             region = getattr(getattr(after, 'AccountInfo', None), 'PlayerRegion', 'IND')
             uid = getattr(getattr(after, 'AccountInfo', None), 'UID', 'N/A')
+    
  
             result = OrderedDict([
                  ("LikesGivenByAPI", like_given),
