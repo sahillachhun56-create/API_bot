@@ -221,25 +221,10 @@ def handle_requests():
                 used_count += 1
 
             remaining = max(daily_limit - used_count, 0)
-     try:
-        nickname = after.AccountInfo.PlayerNickname
-    except (AttributeError, TypeError):
-        nickname = "Unknown"
-
-    try:
-        level = after.AccountInfo.Levels
-    except (AttributeError, TypeError):
-        level = 0
-
-    try:
-        region = after.AccountInfo.PlayerRegion
-    except (AttributeError, TypeError):
-        region = "IND"
-
-    try:
-        uid = after.AccountInfo.UID
-    except (AttributeError, TypeError):
-        uid = "N/A"
+    nickname = getattr(getattr(after, 'AccountInfo', None), 'PlayerNickname', 'Unknown')
+    level = getattr(getattr(after, 'AccountInfo', None), 'Levels', 0)
+    region = getattr(getattr(after, 'AccountInfo', None), 'PlayerRegion', 'IND')
+    uid = getattr(getattr(after, 'AccountInfo', None), 'UID', 'N/A')
 
     result = OrderedDict([
         ("LikesGivenByAPI", like_given),
@@ -254,6 +239,7 @@ def handle_requests():
         ("used", used_count),
         ("remaining", remaining)
     ])
+            
         
 
             return app.response_class(
