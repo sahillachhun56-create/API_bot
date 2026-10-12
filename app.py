@@ -209,25 +209,27 @@ def handle_requests():
 
             asyncio.run(send_multiple_requests(uid, region, url))
 
-            after = make_request(encrypted_uid, region, token)
-            if after is None:
-                raise Exception("Failed to get final info.")
-            after_like = after.AccountInfo.Likes
-            like_given = after_like - before_like
-            status = 1 if like_given > 0 else 2
+    after = make_request(encrypted_uid, region, token)
+    if after is None:
+        raise Exception("Failed to get final info.")
 
-            # ✅ Count only when successful (status == 1)
-            if status == 1:
-                used_count += 1
+    after_info = getattr(after, 'AccountInfo', None)
 
-            remaining = max(daily_limit - used_count, 0)
+    after_like = getattr(after_info, 'Likes', 0) if after_info else 0
+    like_given = after_like - before_like
+    status = 1 if like_given > 0 else 2
 
-    info = getattr(after, 'AccountInfo', None) if after else None
+    # Count only when successful (status == 1)
+    if status == 1:
+        used_count += 1
 
-    nickname = info.PlayerNickname if info and hasattr(info, 'PlayerNickname') else "Unknown"
-    level = info.Levels if info and hasattr(info, 'Levels') else 0
-    region = info.PlayerRegion if info and hasattr(info, 'PlayerRegion') else "IND"
-    uid = info.UID if info and hasattr(info, 'UID') else "N/A"
+    remaining = max(daily_limit - used_count, 0)
+
+    nickname = getattr(after_info, 'PlayerNickname', 'Unknown') if after_info else 'Unknown'
+    level = getattr(after_info, 'Levels', 0) if after_info else 'Unknown'
+    region = getattr(after_info, 'PlayerRegion', 'IND') if after_info else 'IND'
+    uid = getattr(after_info, 'UID', 'N/A') if after_info else 'N/A'
+    
     
         
 
