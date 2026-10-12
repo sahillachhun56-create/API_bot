@@ -222,25 +222,40 @@ def handle_requests():
 
             remaining = max(daily_limit - used_count, 0)
             
-            nickname = getattr(getattr(after, 'AccountInfo', None), 'PlayerNickname', 'Unknown')
-            level = getattr(getattr(after, 'AccountInfo', None), 'Levels', 0)
-            region = getattr(getattr(after, 'AccountInfo', None), 'PlayerRegion', 'IND')
-            uid = getattr(getattr(after, 'AccountInfo', None), 'UID', 'N/A')
+                try:
+        nickname = after.AccountInfo.PlayerNickname
+    except (AttributeError, TypeError):
+        nickname = "Unknown"
+
+    try:
+        level = after.AccountInfo.Levels
+    except (AttributeError, TypeError):
+        level = 0
+
+    try:
+        region = after.AccountInfo.PlayerRegion
+    except (AttributeError, TypeError):
+        region = "IND"
+
+    try:
+        uid = after.AccountInfo.UID
+    except (AttributeError, TypeError):
+        uid = "N/A"
+
+    result = OrderedDict([
+        ("LikesGivenByAPI", like_given),
+        ("LikesafterCommand", after_like),
+        ("LikesbeforeCommand", before_like),
+        ("PlayerNickname", nickname),
+        ("Level", level),
+        ("Region", region),
+        ("UID", uid),
+        ("status", status),
+        ("daily_limit", daily_limit),
+        ("used", used_count),
+        ("remaining", remaining)
+    ])
     
- 
-            result = OrderedDict([
-                 ("LikesGivenByAPI", like_given),
-                 ("LikesafterCommand", after_like),
-                 ("LikesbeforeCommand", before_like),
-                 ("PlayerNickname", nickname),
-                 ("Level", level),
-                 ("Region", region),
-                 ("UID", uid),
-                 ("status", status),
-                 ("daily_limit", daily_limit),
-                 ("used", used_count),
-                 ("remaining", remaining)
-            ])
             
         
 
